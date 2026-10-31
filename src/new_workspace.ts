@@ -19,7 +19,7 @@ import { Writer, writeEllipsis } from "./text";
 /** How long ↵ is held to create; letting go undoes it faster. A release
  * shows sooner than the shared default: a gap past the measured repeat
  * delay or after a repeat. */
-export const create_hold_ms = 3000;
+export const create_hold_ms = 1;
 const create_heal_ms = 220;
 const create_gap_ms = 150;
 const create_first_gap_ms = 80;
@@ -394,10 +394,7 @@ export class Dialog extends nameDialog.Dialog {
       return "none";
     }
     if (byte === 13) {
-      const done = this.create.press(now);
-      this.pressed(now);
-      if (!done) return "none";
-      this.create.reset();
+      // Instant create: a single ↵ saves without the hold-to-confirm.
       return "save";
     }
     if (b.focused && byte !== 27) {

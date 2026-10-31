@@ -2134,7 +2134,8 @@ export class Controller {
         this.beginRename();
         break;
       case "new-workspace":
-        this.beginWorkspace(null);
+        // Instant create: no dialog, default name, current folder.
+        await this.newWorkspace("Untitled", this.currentCwd());
         break;
       case "edit-workspace":
         this.openCurrentWorkspaceMenu();
