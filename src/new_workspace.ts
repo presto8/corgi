@@ -19,7 +19,7 @@ import { Writer, writeEllipsis } from "./text";
 /** How long ↵ is held to create; letting go undoes it faster. A release
  * shows sooner than the shared default: a gap past the measured repeat
  * delay or after a repeat. */
-export const create_hold_ms = 1;
+export const create_hold_ms = 3000;
 const create_heal_ms = 220;
 const create_gap_ms = 150;
 const create_first_gap_ms = 80;
@@ -349,6 +349,8 @@ export class Dialog extends nameDialog.Dialog {
   browser: Browser;
   /** The name is the browser's folder's, following it until edited. */
   follows_folder = true;
+  /** A single ↵ saves, skipping the hold-to-confirm, when instant create is on. */
+  instant: boolean;
   /** Creating takes a hold of ↵, or of its button. */
   create = new KeyHold(create_hold_ms, create_heal_ms, create_gap_ms, create_first_gap_ms);
   /** The hold as the border draws it, and how lit the ↵ key is, 0 to 1. */
@@ -358,10 +360,12 @@ export class Dialog extends nameDialog.Dialog {
   moving = false;
   private lit_until = 0;
 
-  /** Opens on the name, which follows the browser's folder. */
-  constructor(browser: Browser) {
+  /** Opens on the name, which follows the browser's folder; `instant` makes a
+   * single ↵ save without the hold. */
+  constructor(browser: Browser, instant = false) {
     super({ workspace_name: null });
     this.browser = browser;
+    this.instant = instant;
     browser.focused = false;
     this.follow();
   }
@@ -395,6 +399,11 @@ export class Dialog extends nameDialog.Dialog {
     }
     if (byte === 13) {
       // Instant create: a single ↵ saves without the hold-to-confirm.
+      if (this.instant) return "save";
+      const done = this.create.press(now);
+      this.pressed(now);
+      if (!done) return "none";
+      this.create.reset();
       return "save";
     }
     if (b.focused && byte !== 27) {

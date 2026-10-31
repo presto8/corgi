@@ -42,6 +42,11 @@ export class Preferences {
   review_width = 80;
   /** Rows the review panel's file list takes at most, as last dragged. */
   review_tree_rows = 9;
+  /** New-workspace creates at once, without the hold-to-confirm dialog. */
+  instant_workspace_create = false;
+  /** Instant create names the workspace for its folder when there is one,
+   * falling back to the default name. */
+  auto_workspace_name = false;
 
   agentSort(): Sort {
     return this.agent_sort ?? "manual";
@@ -106,7 +111,7 @@ export function readExisting(file: string): Preferences | null {
       if (!(values as readonly string[]).includes(d[key])) return null;
       (v as any)[key] = d[key];
     }
-    for (const key of ["onboarding_complete"] as const) {
+    for (const key of ["onboarding_complete", "instant_workspace_create", "auto_workspace_name"] as const) {
       if (!(key in d)) continue;
       if (typeof d[key] !== "boolean") return null;
       v[key] = d[key];

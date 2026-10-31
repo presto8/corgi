@@ -108,6 +108,7 @@ export type Item =
   | "theme"
   | "shell"
   | "keyboard"
+  | "workspace"
   | "agents"
   | "source_control"
   | "terminal"
@@ -133,6 +134,7 @@ const list: ListRow[] = [
   "shell",
   "keyboard",
   "source_control",
+  "workspace",
   null,
   "agents",
   null,
@@ -155,6 +157,7 @@ const labels: Record<Item, string> = {
   theme: "Theme",
   shell: "Shell",
   keyboard: "Keymap",
+  workspace: "New workspace",
   source_control: "Source control",
   agents: "Manage agents",
   terminal: "Terminal capabilities",
@@ -187,6 +190,8 @@ export type Apply =
   | { kind: "summaries"; choice: Summarizer; model?: string; account?: string }
   | { kind: "inference_use"; use: Use; on: boolean }
   | { kind: "readings" | "smart_links" | "ghostty"; on: boolean }
+  /** Whether new-workspace creates at once, and what instant create names. */
+  | { kind: "instant_workspace_create" | "auto_workspace_name"; on: boolean }
   | { kind: "corgi_intensity"; value: number }
   | { kind: "theme"; theme: palette.Theme }
   | { kind: "shell"; entry: shellPicker.Entry }
@@ -883,6 +888,8 @@ export class Menu {
     switch (this.item) {
       case "readings":
         return { kind: "readings", on: !prefs.resources.enabled };
+      case "workspace":
+        return { kind: "instant_workspace_create", on: !prefs.instant_workspace_create };
       case "detach":
         return { kind: "detach" };
       default:
@@ -1781,6 +1788,23 @@ export class Menu {
           blank,
           { tag: "note", text: "Sampling stops once every viewer turns it off." },
         ];
+      case "workspace":
+        return [
+          title("Workspace creation"),
+          lead("How new workspaces open."),
+          blank,
+          ...onOff(prefs.instant_workspace_create, "instant_workspace_create", [
+            "create at once, no hold-to-confirm dialog",
+            "open the create dialog, hold ↵ to confirm",
+          ]).map(option),
+          blank,
+          ...onOff(prefs.auto_workspace_name, "auto_workspace_name", [
+            "instant create names the workspace for its folder",
+            "instant create uses the default name",
+          ]).map(option),
+          blank,
+          { tag: "note", text: "Name choice applies only when creating is instant." },
+        ];
       case "clever_corgi": {
         const second = note(s.choice, s);
         return [
@@ -2078,6 +2102,8 @@ export class Menu {
         return { text: this.shell.path ? this.shell.path.split("/").pop()! : "", tone: "muted" };
       case "keyboard":
         return { text: km.name(prefs.preset), tone: "muted" };
+      case "workspace":
+        return flag(prefs.instant_workspace_create);
       case "source_control":
         return prefs.worktree_folder === worktreeFolder.default_template
           ? { text: "", tone: "faint" }
@@ -2192,7 +2218,11 @@ function pickerArea(l: Layout, line: number): Rect {
     right = l.options.x + l.options.w - 1;
   return new Rect(x0, l.b.y + 2 + line, right - x0, l.body - line);
 }
-function onOff(enabled: boolean, kind: "readings", details: [string, string]): Option[] {
+function onOff(
+  enabled: boolean,
+  kind: "readings" | "instant_workspace_create" | "auto_workspace_name",
+  details: [string, string],
+): Option[] {
   return [true, false].map((value, i) => ({
     label: value ? "On" : "Off",
     detail: details[i],

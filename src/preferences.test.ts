@@ -40,6 +40,11 @@ test("preferences round trip and fall back to defaults", async () => {
     expect(JSON.parse(await readFile(file, "utf8"))).not.toHaveProperty("theme");
     await writeFile(file, '{"agent_scroll":{"workspace":null,"offset":4}}');
     expect((await read(file)).agent_scroll).toEqual({ workspace: null, offset: 4 });
+    // The new-workspace toggles save and a wrong type fails the whole file.
+    await writeFile(file, '{"instant_workspace_create":true,"auto_workspace_name":true}');
+    expect(await read(file)).toMatchObject({ instant_workspace_create: true, auto_workspace_name: true });
+    await writeFile(file, '{"instant_workspace_create":1}');
+    expect(await read(file)).toEqual(new Preferences());
     await writeFile(file, '{"agent_scroll":{"workspace":2,"offset":-1}}');
     expect(await read(file)).toEqual(new Preferences());
     await writeFile(file, '{"theme":3}');

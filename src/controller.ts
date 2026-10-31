@@ -1696,7 +1696,7 @@ export class Controller {
     }
     this.name_dialog =
       id === null
-        ? new newWorkspace.Dialog(newWorkspace.Browser.init(this.currentCwd()))
+        ? new newWorkspace.Dialog(newWorkspace.Browser.init(this.currentCwd()), this.prefs.instant_workspace_create)
         : Dialog.init({ workspace_name: id }, initial);
     this.prepareName();
   }
@@ -2134,8 +2134,10 @@ export class Controller {
         this.beginRename();
         break;
       case "new-workspace":
-        // Instant create: no dialog, default name, current folder.
-        await this.newWorkspace("Untitled", this.currentCwd());
+        // Instant create: no dialog; the folder's name when wanted, else the default.
+        if (this.prefs.instant_workspace_create)
+          await this.newWorkspace(this.prefs.auto_workspace_name ? "" : "Untitled", this.currentCwd());
+        else this.beginWorkspace(null);
         break;
       case "edit-workspace":
         this.openCurrentWorkspaceMenu();
@@ -3631,6 +3633,15 @@ export class Controller {
         return this.saveKeys(apply.preset, this.prefs.prefix);
       case "prefix":
         return this.saveKeys(this.prefs.preset, this.prefs.prefix === "ctrl_b" ? "ctrl_a" : "ctrl_b");
+      case "instant_workspace_create":
+      case "auto_workspace_name":
+        this.prefs[apply.kind] = apply.on;
+        try {
+          preferences.update({ [apply.kind]: apply.on });
+        } catch (error) {
+          this.notice((error as Error).message);
+        }
+        return;
       case "readings":
         this.prefs.resources.enabled = apply.on;
         try {
