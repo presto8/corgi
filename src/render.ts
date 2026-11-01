@@ -860,7 +860,7 @@ export function frame(view: LayoutView, panes: Pane[], width: number, height: nu
         : u.copy_mode
           ? "SCROLL  j/k move  y copy viewport  q exit"
           : u.sidebar_focus
-            ? `SIDEBAR  ↑↓ move  ↵ open  ${search}Esc back`
+            ? `SIDEBAR  ↑↓/j/k move  ↵ open  ${search}Esc back`
             : "");
     // Beside the sidebar while it has focus, clear of its box's bottom edge.
     cover(writeChip(w, text, width, height, u.pointer, u.sidebar_focus ? side.width : 0));
