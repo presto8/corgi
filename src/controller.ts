@@ -1700,6 +1700,16 @@ export class Controller {
         : Dialog.init({ workspace_name: id }, initial);
     this.prepareName();
   }
+  /** Names instant-created workspaces "Workspace N", one past the largest
+   * number already in use, so no two live workspaces share a name. */
+  private nextWorkspaceName(): string {
+    let max = 0;
+    for (const w of this.runtime.workspaces.items) {
+      const m = /^Workspace (\d+)$/.exec(w.name);
+      if (m) max = Math.max(max, Number(m[1]));
+    }
+    return `Workspace ${max + 1}`;
+  }
   private async newWorkspace(name: string, cwd: string): Promise<number> {
     const id = (await this.execute({ "workspace.create": { name, cwd } })).workspace;
     this.switchWorkspace(id);
@@ -2134,9 +2144,9 @@ export class Controller {
         this.beginRename();
         break;
       case "new-workspace":
-        // Instant create: no dialog; the folder's name when wanted, else the default.
+        // Instant create: no dialog; the folder's name when wanted, else numbered.
         if (this.prefs.instant_workspace_create)
-          await this.newWorkspace(this.prefs.auto_workspace_name ? "" : "Untitled", this.currentCwd());
+          await this.newWorkspace(this.prefs.auto_workspace_name ? "" : this.nextWorkspaceName(), this.currentCwd());
         else this.beginWorkspace(null);
         break;
       case "edit-workspace":

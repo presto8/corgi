@@ -2324,3 +2324,13 @@ test("a failed background logout restores the account row and reports the failur
     for (const mock of [find, owns, signOut, remove]) mock.mockRestore();
   }
 });
+
+test("instant create numbers workspaces past the largest in use", () => {
+  const s: any = controller();
+  s.runtime.workspaces.items = [{ name: "demo" }, { name: "Workspace 3" }];
+  expect(s.nextWorkspaceName()).toBe("Workspace 4");
+  s.runtime.workspaces.items = [{ name: "Workspace 1" }, { name: "Workspace 4" }];
+  expect(s.nextWorkspaceName()).toBe("Workspace 5");
+  s.runtime.workspaces.items = [];
+  expect(s.nextWorkspaceName()).toBe("Workspace 1");
+});

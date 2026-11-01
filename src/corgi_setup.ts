@@ -1800,7 +1800,7 @@ export class Menu {
           blank,
           ...onOff(prefs.auto_workspace_name, "auto_workspace_name", [
             "instant create names the workspace for its folder",
-            "instant create uses the default name",
+            "instant create uses a numbered name",
           ]).map(option),
           blank,
           { tag: "note", text: "Name choice applies only when creating is instant." },
